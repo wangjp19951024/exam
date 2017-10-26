@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>主页面</title>
+	<script type="text/javascript" src="js/vue.min.js"></script>
+	<script type="text/javascript" src="js/vue-router.js"></script>
+	<script type="text/javascript" src="js/element-ui.js"></script>
+	<script type="text/javascript" src="js/jquery-3.0.0.min.js"></script>
+	<link rel="stylesheet" href="css/element-ui.css">
+	<!-- 在线引入模块 -->
+	<!-- <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-default/index.css">
+  	<script src="https://unpkg.com/element-ui/lib/index.js"></script> -->
+	<style>
+		body{
+			margin:0;
+			padding: 0;
+		}
+		.leftNav a{
+			text-decoration: none ;
+			font-size:30px ;
+			border:none ;
+			color: #ccc;
+		}
+		.leftNav{
+			margin-right: 10px;
+		}
+	</style>
+</head>
+<body>
+	<div id="app">
+		<el-row class="tac">
+      <!--左侧导航-->
+      <el-col :span="4" class='leftNav' >
+        <el-menu default-active="2" class="el-menu-vertical-demo" theme='dark' style="height:100%">
+          <el-menu-item index="1">
+            <i class="el-icon-menu"></i>
+           		<a href="#/student">学生模块</a>
+          </el-menu-item>
+          <el-menu-item index="2">
+            <i class="el-icon-setting"></i>
+            <a href="#/course">课程模块</a>
+          </el-menu-item>
+          <el-menu-item index="3">
+            <i class="el-icon-picture"></i>
+            <a href="#/class">班级模块</a>
+          </el-menu-item>
+          <el-menu-item index="4">
+            <i class="el-icon-star-on"></i>
+            <a href="#/sc">选课模块</a>
+          </el-menu-item>
+        </el-menu>
+      </el-col>
+      <!--左侧导航结束-->
+      <!--右侧内容-->
+      <el-col :span="100" >
+        <router-view></router-view>
+      </el-col>
+    </el-row>
+	</div>
+	<script>
+		$(function(){
+			$('.leftNav').height($(window).height());
+			
+		})
+	</script>
+
+	<script>
+	//学生组件模块
+		var student = {
+			template:`
+				<div style='padding:0 40px'>
+				<h1>{{title}}</h1>
+					<hr>
+				<el-button type="primary" @click="toSave">单个添加</el-button>
+				<el-button type="primary" @click="toSave">批量添加</el-button>
+				<el-table
+			    :data="studentData"
+			    border
+			    style="width: 80%">
+			    <el-table-column
+			      label="姓名"
+			      >
+			      <template scope="scope">
+			        <el-popover trigger="hover" placement="top">
+			          <p>姓名: {{ scope.row.name }}</p>
+			          <p>性别: {{ scope.row.gender }}</p>
+			          <div slot="reference" class="name-wrapper">
+			            <el-tag>{{ scope.row.name }}</el-tag>
+			          </div>
+			        </el-popover>
+			      </template>
+			    </el-table-column>
+			    <el-table-column
+			      label="性别">
+			      <template scope="scope">
+			        <el-icon name="gender"></el-icon>
+			        <span style="margin-left: 10px">{{ scope.row.gender }}</span>
+			      </template>
+			    </el-table-column>
+			    <el-table-column
+			      label="出生日期">
+			      <template scope="scope">
+			        <el-icon name="time"></el-icon>
+			        <span style="margin-left: 10px">{{ scope.row.birth }}</span>
+			      </template>
+			    </el-table-column>
+			    <el-table-column label="操作">
+			      <template scope="scope">
+			        <el-button
+			          size="small"
+			          @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
+			        <el-button
+			          size="small"
+			          type="danger"
+			          @click="handleDelete(scope.$index, scope.row)">删除</el-button>
+			      </template>
+			    </el-table-column>
+			  </el-table>
+
+			  <el-dialog :title="dialogFormTitle" :visible.sync="dialogFormVisible">
+			  <el-form :model="form">
+			    <el-form-item label="姓名" width="100px">
+			      <el-input v-model="form.name" auto-complete="off"></el-input>
+			    </el-form-item>
+			    <el-form-item label="性别" >
+			      <el-radio class="radio" v-model="form.gender" label="男">男</el-radio>
+			  		<el-radio class="radio" v-model="form.gender" label="女">女</el-radio>
+			    </el-form-item>
+			    <el-form-item label="生日" width="100px">
+			     <div class="block">
+			    <span class="demonstration"></span>
+			    <el-date-picker
+			      v-model="form.birth"
+			      align="right"
+			      type="date"
+			      placeholder="选择日期"
+			      :picker-options="pickerOptions1">
+			    </el-date-picker>
+			  </div>
+			      <el-input v-model="form.birth" auto-complete="off"></el-input>
+			    </el-form-item>
+			  </el-form>
+			  <div slot="footer" class="dialog-footer">
+			    <el-button @click="dialogFormVisible = false">取 消</el-button>
+			    <el-button type="primary" @click="submit">确 定</el-button>
+			  </div>
+			</el-dialog>
+			</div>`,
+			data:function(){
+				return {
+					title:"学生选课系统dd",
+					studentData:null,
+					dialogFormTitle:"学生选课系统",
+					dialogFormVisible:false,
+					form:{},
+					dialogFormTitle:"",
+					//日期选择
+					 pickerOptions1: {
+			          shortcuts: [{
+			            text: '今天',
+			            onClick(picker) {
+			              picker.$emit('pick',this.form.birth);
+			            }
+			          }, {
+			            text: '昨天',
+			            onClick(picker) {
+			              const date = new Date();
+			              date.setTime(date.getTime() - 3600 * 1000 * 24);
+			              picker.$emit('pick', date);
+			            }
+			          }, {
+			            text: '一周前',
+			            onClick(picker) {
+			              const date = new Date();
+			              date.setTime(date.getTime() - 3600 * 1000 * 24 * 7);
+			              picker.$emit('pick', date);
+			            }
+			          }]
+			        }
+				}
+			},
+		methods:{
+				//添加
+				toSave:function(){
+					this.dialogFormTitle='录入学生信息';
+					this.dialogFormVisible = true;
+					this.form = {
+						gender:"男"
+					};
+				},
+				//编辑更新
+				submit:function(){
+					if(this.dialogFormTitle='录入学生信息'){
+						var url = "http://127.0.0.1:3000/student/save";
+					this.dialogFormTitle="添加学生信息";
+					this.class_id = "2";
+					this.password = "123321";
+					var vm = this;
+					$.post(url,this.form,function(data){
+						vm.dialogFormVisible=false;
+						//刷新页面
+							var url = 'http://127.0.0.1:3000/student/findAll'
+							$.get(url,function(data){
+								vm.studentData = data;
+						})
+					});
+					}else{
+
+					var url = "http://127.0.0.1:3000/student/update";
+					this.form.class_id="2";
+					this.form.password="123456";
+					var vm = this;
+					$.post(url,this.form,function(data){
+					vm.dialogFormVisible=false;
+					vm.$message({
+			            type: 'success',
+			            message: '修改成功'
+			          });
+					//刷新页面
+					var urls = 'http://127.0.0.1:3000/student/findAll'
+						$.get(urls,function(data){
+						vm.studentData = data;
+						})
+					})
+				}
+			},
+				//修改
+				handleEdit:function(index,row){
+					this.dialogFormVisible=true;
+					this.dialogFormTitle="修改学生信息";
+					//使添加的框有初始值
+					this.form = row;
+				},
+				//删除
+				handleDelete:function(index,row){
+					//确认删除
+					this.$confirm('此操作将永久删除该数据, 是否继续?', '提示', {
+			          confirmButtonText: '确定',
+			          cancelButtonText: '取消',
+			          type: 'warning'
+			        }).then(() => {
+			        	var vm = this;
+						var url='http://127.0.0.1:3000/student/batchDelete';
+						$.post(url,{ids:JSON.stringify([row.id])},function(data){
+							//刷新页面
+							var url = 'http://127.0.0.1:3000/student/findAll';
+							$.get(url,function(data){
+								vm.studentData = data;
+							})
+						})
+			          this.$message({
+			            type: 'success',
+			            message: '删除成功!'
+			          });
+			        }).catch(() => {
+			          this.$message({
+			            type: 'info',
+			            message: '已取消删除'
+			          });          
+			        });	
+			    }
+			},
+			created:function(){
+				var vm = this;
+				var url = 'http://127.0.0.1:3000/student/findAll'
+				$.get(url,function(data){
+					vm.studentData = data;
+				})
+			}
+		};
+//课程模块
+	var course = {
+		template:`
+		<div>
+			<h1>{{title}}</h1>
+			<hr />
+			  <el-table
+		    :data="courseData"
+		    border
+		    style="width: 80%"
+		    :default-sort = "{prop: 'date', order: 'descending'}"
+		    >
+		    <el-table-column
+		      prop="id"
+		      label="id"
+		      sortable
+		      width="180">
+		    </el-table-column>
+		    <el-table-column
+		      prop="name"
+		      label="课程名"
+		      sortable
+		      width="180">
+		    </el-table-column>
+		    <el-table-column
+		      prop="credit"
+		      label="学分"
+		      :formatter="formatter">
+		    </el-table-column>
+		  </el-table>
+		</div>
+		`,
+  	data:function(){
+  			return {
+  				title:"课程信息管理",
+  				courseData:null
+  			}
+  		},
+  	created:function(){
+  				var vm = this;
+				var url = 'http://127.0.0.1:3000/course/findAll'
+				$.get(url,function(data){
+					vm.courseData = data;
+				})
+			},
+			methods:{
+				formatter:function(row,column){
+					return row.credit;
+				}
+			}
+	};
+	//班级模块
+	var clazz = {
+		template:` 
+		<div style="margin-left:50px">
+		<h1>{{title}}</h1>
+		<hr />
+		<el-table
+	    ref="singleTable"
+	    :data="classData"
+	    highlight-current-row
+	    @current-change="handleCurrentChange"
+	    style="width: 80%">
+	    <el-table-column
+	      property="id"
+	      label="id"
+	      width="120">
+	    </el-table-column>
+	    <el-table-column
+	      property="name"
+	      label="班级名"
+	      width="120">
+	    </el-table-column>
+	  </el-table>
+	  </div>`,
+	  data:function(){
+		return {
+			title:"班级管理",
+			classData:null
+		}
+	},
+	created:function(){
+		var vm = this;
+		var url = 'http://127.0.0.1:3000/clazz/findAll';
+		$.get(url,function(data){
+			vm.classData = data;
+		})
+	},
+	methods:{
+		handleCurrentChange:function(val){
+			 this.currentRow = val;
+		}
+	}
+	};
+
+//选课
+	var sc = {
+		template:`
+			<div>
+			<h1>学生选课管理</h1>
+			<p>there is nothing......</p>
+			</div>
+
+		`
+	}
+
+
+//创建路由
+	var router = new VueRouter({
+		routes:[{
+			path:"/student",
+			component:student
+		},{
+			path:"/course",
+			component:course
+		},{
+			path:"/class",
+			component:clazz
+		},{
+			path:"/sc",
+			component:sc
+		}]
+	});
+
+
+		new Vue({
+			el:"#app",
+			router:router
+		})
+	</script>
+</body>
+</html>
